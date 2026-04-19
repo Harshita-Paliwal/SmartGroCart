@@ -1,0 +1,29 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@font-face {
+  font-family: 'SgcDigits';
+  src: local('Bahnschrift'), local('Segoe UI Variable Display'), local('Segoe UI');
+  unicode-range: U+0030-0039, U+0025, U+002B-U+002F, U+003A, U+20B9, U+00D7;
+  font-display: swap;
+}
+:root {
+  --g: #22c55e; --g2: #16a34a; --gdk: #052e16;
+  --bg: #060810; --s1: #0f1117; --s2: #171b24; --s3: #1e2330;
+  --bd: #252d3d; --bd2: #2e3849;
+  --t1: #f0f4ff; --t2: #a8b4cc; --t3: #5a6480;
+  --r: 10px; --r2: 14px;
+  --ff: 'SgcDigits', 'Syne', sans-serif; --fb: 'SgcDigits', 'DM Sans', sans-serif;
+}
+html[data-theme='light'] {
+  --g: #16a34a; --g2: #15803d; --gdk: #effaf4;
+  --bg: #f4f8f4; --s1: #ffffff; --s2: #f7faf7; --s3: #eef4ef;
+  --bd: #dbe6dd; --bd2: #c8d7cb;
+  --t1: #0d1720; --t2: #435568; --t3: #6b7d70;
+}
+body { font-family: var(--fb); background: var(--bg); color: var(--t1); min-height: 100vh; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums; }
+input, select, textarea, button { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+body, aside, main, button, input, select, textarea, div {
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 3px; }
