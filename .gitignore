@@ -8,6 +8,7 @@ server/.env.*
 client/.env
 client/.env.*
 !.env.example
+!client/.env.example
 
 client/build/
 client/dist/
