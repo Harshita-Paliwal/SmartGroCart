@@ -63,7 +63,7 @@ Create `server/.env` from `server/.env.example` and set your values:
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/smartgrocart
 JWT_SECRET=your-secret-key
-CLIENT_URL=http://localhost:3000
+CLIENT_URL=http://localhost:3000,https://smartgrocart.vercel.app
 ```
 
 ### 3. Run the app

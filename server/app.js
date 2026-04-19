@@ -4,15 +4,35 @@ const env = require('./config/env');
 
 const app = express();
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  if (env.clientUrls.includes(origin)) {
+    return true;
+  }
+
+  // Allow Vercel preview deployments for this frontend project.
+  return /^https:\/\/smartgrocart(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+};
+
 /**
  * Applies cross-cutting middleware shared across every API route.
  */
 app.use(
   cors({
     credentials: true,
-    origin: env.clientUrl,
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
   }),
 );
+app.options('*', cors());
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
