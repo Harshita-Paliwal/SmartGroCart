@@ -9,6 +9,7 @@ client/.env
 client/.env.*
 !.env.example
 !client/.env.example
+!client/.env.production
 
 client/build/
 client/dist/
