@@ -1,131 +1,178 @@
-# 🛒 SmartGroCart — AI-Powered Smart Grocery Planner (MERN)
+# SmartGroCart
 
-## ⚡ Quick Start
+SmartGroCart is a full-stack grocery planning application for households. It helps users manage shopping, track spending against a monthly budget, maintain family-specific requests, review purchase history, and get smart replenishment suggestions based on past buying patterns.
+
+## Stack
+
+- Frontend: React + TypeScript + Vite
+- Backend: Node.js + Express
+- Database: MongoDB + Mongoose
+- Auth: JWT + bcrypt
+
+## Core Features
+
+- Username/password authentication
+- Family member management with dietary preferences
+- Grocery catalog browsing and cart management
+- Shared family requests inside the cart
+- Monthly budget tracking with warning thresholds
+- Purchase history and category/month spending summaries
+- Rule-based smart suggestions from purchase frequency
+- Expiry alerts for recently purchased items
+
+## Project Structure
+
+```text
+smartgrocart/
+  client/                 # Vite React frontend
+    src/
+      api/                # API modules and axios setup
+      components/         # Shared UI components
+      context/            # Auth context
+      pages/              # App screens
+      types/              # Shared frontend types
+      utils/              # Frontend helpers
+    index.html
+    vite.config.ts
+
+  server/                 # Express backend
+    config/               # Environment and DB connection setup
+    controllers/          # Route handlers
+    middleware/           # Express middleware
+    models/               # Mongoose models
+    routes/               # API route definitions
+    services/             # Business logic helpers
+    utils/                # Seed and suggestion helpers
+    app.js
+    index.js
+```
+
+## Getting Started
+
+### 1. Install dependencies
 
 ```bash
-# 1. Install all dependencies
 npm run install:all
+```
 
-# 2. Configure environment
-cp server/.env.example server/.env
-# Edit server/.env — fill in MONGO_URI and JWT_SECRET
+### 2. Configure environment
 
-# 3. Run (both frontend + backend)
+Create `server/.env` from `server/.env.example` and set your values:
+
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/smartgrocart
+JWT_SECRET=your-secret-key
+CLIENT_URL=http://localhost:3000
+```
+
+### 3. Run the app
+
+From the project root:
+
+```bash
 npm run dev
 ```
-- Frontend → http://localhost:3000
-- Backend  → http://localhost:5000
 
-## 📁 File Structure
+Default local URLs:
 
-```
-smartgrocart/
-├── package.json                    ← root (runs both with concurrently)
-├── server/
-│   ├── index.js                    ← Express + MongoDB entry
-│   ├── .env.example                ← copy to .env and fill in values
-│   ├── middleware/
-│   │   └── auth.js                 ← JWT verification middleware
-│   ├── models/
-│   │   ├── SCHEMA.md               ← ⭐ FULL DB SCHEMA DOCUMENTATION
-│   │   ├── User.js                 ← username+password auth, family, budget
-│   │   ├── Product.js              ← grocery catalog
-│   │   ├── Cart.js                 ← one cart per user (embedded items)
-│   │   └── Purchase.js             ← order history (embedded items)
-│   ├── routes/
-│   │   ├── auth.js                 ← register, login, me, profile
-│   │   ├── products.js             ← list, seed, CRUD
-│   │   ├── cart.js                 ← get, add, update, remove, clear
-│   │   ├── purchases.js            ← checkout, history, stats
-│   │   ├── suggestions.js          ← rules, expiry, Claude AI
-│   │   └── family.js               ← add/edit/delete members
-│   └── utils/
-│       ├── seedProducts.js         ← 35 Indian grocery items
-│       └── suggestionEngine.js     ← rule-based frequency engine
-└── client/src/
-    ├── api/
-    │   ├── axios.ts                ← Axios instance + JWT interceptors
-    │   └── index.ts                ← all API call functions
-    ├── context/AuthContext.tsx     ← global auth state (React Context)
-    ├── components/Sidebar.tsx      ← app navigation
-    └── pages/
-        ├── LandingPage.tsx         ← animated marketing landing page
-        ├── AuthPage.tsx            ← login + register (NO OTP, NO email)
-        ├── Dashboard.tsx           ← stats, charts, suggestions, alerts
-        ├── ShopPage.tsx            ← browse products + add to cart
-        ├── CartPage.tsx            ← cart + budget bar + checkout
-        ├── SuggestPage.tsx         ← rule-based + Claude AI + expiry tabs
-        ├── FamilyPage.tsx          ← add/remove family members
-        ├── HistoryPage.tsx         ← past orders + spending charts
-        └── ProfilePage.tsx         ← edit profile, password, dietary prefs
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5000`
 
-```
+## Available Scripts
 
-## 🗄 MongoDB Setup
+### Root
 
-### Option A — Local
 ```bash
-# macOS
-brew install mongodb-community && brew services start mongodb-community
-
-# Ubuntu
-sudo apt install mongodb && sudo systemctl start mongodb
-
-# Windows — download from mongodb.com/try/download/community
+npm run dev
+npm run server
+npm run client
+npm run build:client
 ```
-Set: `MONGO_URI=mongodb://localhost:27017/smartgrocart`
 
-### Option B — Atlas (free cloud)
-1. Go to cloud.mongodb.com → create free cluster
-2. Connect → Drivers → copy the URI
-3. Set: `MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/smartgrocart`
+### Client
 
-> Mongoose creates all collections automatically — no manual setup needed.
-
-## 🌐 API Reference
-
-| Method | Endpoint                    | Auth | Description                    |
-|--------|-----------------------------|------|--------------------------------|
-| POST   | /api/auth/register          | —    | Register (username + password) |
-| POST   | /api/auth/login             | —    | Login (no OTP, no email)       |
-| GET    | /api/auth/me                | ✅   | Get current user               |
-| PUT    | /api/auth/profile           | ✅   | Update profile                 |
-| GET    | /api/products               | ✅   | List products                  |
-| POST   | /api/products/seed          | ✅   | Seed 35 demo products          |
-| POST   | /api/products/seed/force    | ✅   | Wipe + re-seed                 |
-| GET    | /api/cart                   | ✅   | Get cart + budget info         |
-| POST   | /api/cart/add               | ✅   | Add item to cart               |
-| PUT    | /api/cart/item/:id          | ✅   | Update item quantity           |
-| DELETE | /api/cart/item/:id          | ✅   | Remove item                    |
-| DELETE | /api/cart/clear             | ✅   | Empty cart                     |
-| POST   | /api/purchases/checkout     | ✅   | Checkout → creates purchase    |
-| GET    | /api/purchases              | ✅   | Purchase history               |
-| GET    | /api/purchases/stats        | ✅   | Monthly + category charts      |
-| GET    | /api/suggestions            | ✅   | Rule-based suggestions         |
-| GET    | /api/suggestions/expiry     | ✅   | Items expiring ≤3 days         |
-| POST   | /api/suggestions/ai         | ✅   | Claude AI suggestions          |
-| GET    | /api/family                 | ✅   | List family members            |
-| POST   | /api/family                 | ✅   | Add family member              |
-| PUT    | /api/family/:id             | ✅   | Edit family member             |
-| DELETE | /api/family/:id             | ✅   | Remove family member           |
-
-## 🧠 AI (Claude) Setup
-Add to `server/.env`:
+```bash
+cd client
+npm run dev
+npm run build
+npm run preview
 ```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-App works fully without it — AI tab shows a clear message and the rule-based tab always works.
 
-## ✅ Features
-- Landing page with animated marquee + feature cards
-- Login/Register — username + password ONLY (no email, no OTP)
-- JWT auth (7-day tokens), bcrypt password hashing
-- Family member management (name, age, relation, dietary preference)
-- 35 Indian grocery products (seed via one click)
-- Shopping cart with real-time budget tracking
-- Budget warning bar (turns amber at 60%, red at 80%)
-- Purchase history with expandable orders + category charts
-- Rule-based AI: frequency analysis, family size quantity scaling
-- Expiry alerts (items expiring within 3 days)
-- Claude AI suggestions (optional, needs API key)
-- Dark theme — Syne + DM Sans fonts
+### Server
+
+```bash
+cd server
+npm run dev
+npm start
+```
+
+## Backend Overview
+
+The backend is split by responsibility:
+
+- `routes/` maps endpoints
+- `controllers/` handle request/response flow
+- `services/` contain reusable business logic
+- `models/` define MongoDB collections with Mongoose
+- `middleware/` handles auth and shared request concerns
+
+This keeps data access, API wiring, and application logic separate and easier to maintain.
+
+## Database Overview
+
+The main collections are:
+
+- `users`
+- `products`
+- `carts`
+- `purchases`
+
+Detailed schema notes are documented in [server/models/SCHEMA.md](/c:/My_projects/smartgrocart-final/sgc/server/models/SCHEMA.md).
+
+## API Summary
+
+### Auth
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PUT /api/auth/profile`
+
+### Products
+
+- `GET /api/products`
+- `POST /api/products/seed`
+- `POST /api/products/seed/force`
+
+### Cart
+
+- `GET /api/cart`
+- `POST /api/cart/add`
+- `PUT /api/cart/item/:itemId`
+- `DELETE /api/cart/item/:itemId`
+- `DELETE /api/cart/clear`
+
+### Purchases
+
+- `POST /api/purchases/checkout`
+- `GET /api/purchases`
+- `GET /api/purchases/stats`
+
+### Suggestions
+
+- `GET /api/suggestions`
+- `GET /api/suggestions/expiry`
+
+### Family
+
+- `GET /api/family`
+- `POST /api/family`
+- `PUT /api/family/:memberId`
+- `DELETE /api/family/:memberId`
+
+## Notes
+
+- MongoDB collections are created automatically by Mongoose on first write.
+- The frontend uses a Vite dev proxy for `/api` requests during local development.
+- The project currently uses an in-app page-based navigation flow rather than React Router.
