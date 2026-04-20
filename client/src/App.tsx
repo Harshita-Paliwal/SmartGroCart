@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import Sidebar from './components/Sidebar';
 import { getCart } from './api';
 import { getCartItemCount } from './utils/cart';
+import useResponsive from './utils/useResponsive';
 
 export type Page =
   | 'dashboard'
@@ -29,10 +30,12 @@ export type Screen = 'landing' | 'auth' | 'app';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
   const [screen, setScreen] = useState<Screen>('landing');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [page, setPage] = useState<Page>('dashboard');
   const [cartCount, setCartCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(
     () => (localStorage.getItem('sgc-theme') as 'dark' | 'light') || 'dark',
   );
@@ -61,6 +64,12 @@ const AppContent: React.FC = () => {
       setCartCount(0);
     }
   }, [user, refreshCartCount]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [isMobile, page]);
 
   if (loading) {
     return (
@@ -126,7 +135,15 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        minHeight: '100vh',
+        overflow: 'hidden',
+        background: 'var(--bg)',
+      }}
+    >
       <Sidebar
         page={page}
         onNavigate={setPage}
@@ -134,8 +151,21 @@ const AppContent: React.FC = () => {
         onLogout={() => setScreen('landing')}
         theme={theme}
         onToggleTheme={() => setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))}
+        isMobile={isMobile}
+        isTablet={isTablet}
+        open={sidebarOpen}
+        onOpen={() => setSidebarOpen(true)}
+        onClose={() => setSidebarOpen(false)}
       />
-      <main style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: 'var(--bg)' }}>
+      <main
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: isMobile ? '16px 14px 24px' : isTablet ? '20px' : '24px 28px',
+          background: 'var(--bg)',
+          minWidth: 0,
+        }}
+      >
         {pages[page]}
       </main>
     </div>

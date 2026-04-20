@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import useResponsive from '../utils/useResponsive';
 
 interface Props {
   onLogin: () => void;
@@ -43,6 +44,7 @@ const modes = [
 ] as const;
 
 export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme }: Props) {
+  const { isMobile, isTablet } = useResponsive();
   const [activeMode, setActiveMode] = useState<(typeof modes)[number]['key']>('plan');
   const [pointer, setPointer] = useState({ x: 50, y: 50 });
   const isLightTheme = theme === 'light';
@@ -158,12 +160,12 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
       />
       <div style={{ position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)', width: 760, height: 420, background: uiTheme.halo, pointerEvents: 'none' }} />
 
-      <div style={{ width: '100%', maxWidth: 1440, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 1 }}>
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0', gap: 16 }}>
+      <div style={{ width: '100%', maxWidth: 1440, margin: '0 auto', padding: isMobile ? '0 16px' : '0 32px', position: 'relative', zIndex: 1 }}>
+        <nav style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', flexDirection: isMobile ? 'column' : 'row', padding: '24px 0', gap: 16 }}>
           <div style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.04em' }}>
             Smart<span style={{ color: 'var(--g)' }}>Gro</span>Cart
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={onToggleTheme}
@@ -194,7 +196,7 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
           </div>
         </nav>
 
-        <section style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 22, alignItems: 'center', padding: '0 0 10px' }}>
+        <section style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1.1fr .9fr', gap: 22, alignItems: 'center', padding: '0 0 10px' }}>
           <div style={{ textAlign: 'left', padding: '0 0 10px' }}>
             <div
               style={{
@@ -261,7 +263,7 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
             </div>
           </div>
 
-          <div style={{ position: 'relative', minHeight: 590, marginTop: -36 }}>
+          <div style={{ position: 'relative', minHeight: isMobile ? 440 : 590, marginTop: isTablet ? 0 : -36 }}>
             <div
               style={{
                 position: 'absolute',
@@ -290,7 +292,7 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
               </div>
 
               <div style={{ position: 'relative', height: 'calc(100% - 58px)', padding: 18 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
                   {[
                     ['BUDGET USED', '43%', '#22c55e', 43],
                     ['AI SUGGESTIONS', '8', '#a78bfa', 70],
@@ -377,7 +379,7 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 10, marginTop: 16 }}>
                   {[
                     ['Family scan', '3 members', '#38bdf8'],
                     ['Waste risk', 'Low', '#22c55e'],
@@ -436,7 +438,7 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.3fr .7fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1.3fr .7fr', gap: 12 }}>
             <div style={{ background: isLightTheme ? 'rgba(255,255,255,.92)' : 'linear-gradient(180deg, rgba(17,20,28,.9), rgba(12,14,20,.96))', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: 18, overflow: 'hidden' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
@@ -445,7 +447,7 @@ export default function LandingPage({ onLogin, onRegister, theme, onToggleTheme 
                 </div>
                 <div style={{ fontSize: '0.76rem', color: active.color, border: `1px solid ${active.color}33`, padding: '6px 10px', borderRadius: 99, textAlign: 'right' }}>{active.subtitle}</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, alignItems: 'end', minHeight: 170 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, alignItems: 'end', minHeight: 170, overflowX: isMobile ? 'auto' : 'visible' }}>
                 {[38, 62, 44, 80, 55].map((h, idx) => (
                   <div key={idx} style={{ display: 'grid', gap: 8, justifyItems: 'center' }}>
                     <div style={{ width: '100%', height: 150, display: 'flex', alignItems: 'end' }}>

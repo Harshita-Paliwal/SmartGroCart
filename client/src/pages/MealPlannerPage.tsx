@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { addToCart } from '../api';
 import { useAuth } from '../context/AuthContext';
+import useResponsive from '../utils/useResponsive';
 
 type Diet = 'veg' | 'vegan' | 'nonveg';
 type Slot = 'breakfast' | 'lunch' | 'dinner';
@@ -184,6 +185,7 @@ const isAllowedMeal = (meal: Meal, diet: { vegetarian: boolean; vegan: boolean; 
 
 export default function MealPlannerPage({ onCartChange }: { onCartChange?: () => void | Promise<void> }) {
   const { user } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
   const [schedule, setSchedule] = useState<Record<(typeof DAYS)[number], DayPlan>>(makeInitialSchedule);
   const [day, setDay] = useState<(typeof DAYS)[number]>('Mon');
   const [toast, setToast] = useState('');
@@ -330,7 +332,7 @@ export default function MealPlannerPage({ onCartChange }: { onCartChange?: () =>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 0.95fr', gap: 14, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1.45fr 0.95fr', gap: 14, alignItems: 'start' }}>
         <div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
             {DAYS.map(d => {
@@ -350,7 +352,7 @@ export default function MealPlannerPage({ onCartChange }: { onCartChange?: () =>
                     fontSize: '0.74rem',
                     fontWeight: 700,
                     cursor: 'pointer',
-                    minWidth: 84,
+                    minWidth: isMobile ? 72 : 84,
                     textAlign: 'left',
                   }}
                 >
@@ -372,7 +374,7 @@ export default function MealPlannerPage({ onCartChange }: { onCartChange?: () =>
                 <div style={{ fontFamily: 'var(--ff)', fontSize: '0.68rem', letterSpacing: '0.06em', color: 'var(--t3)', marginBottom: 6 }}>
                   {slot.toUpperCase()}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit,minmax(${isMobile ? 120 : 140}px,1fr))`, gap: 8 }}>
                   {filteredMeals[slot].map(meal => {
                     const selected = current[slot] === meal.id;
                     return (
@@ -417,7 +419,7 @@ export default function MealPlannerPage({ onCartChange }: { onCartChange?: () =>
 
         <div style={{ display: 'grid', gap: 12 }}>
           <div style={{ background: budgetOver ? 'rgba(245,158,11,.08)' : 'rgba(34,197,94,.08)', border: `1px solid ${budgetOver ? 'rgba(245,158,11,.22)' : 'rgba(34,197,94,.22)'}`, borderRadius: 'var(--r2)', padding: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'baseline', flexDirection: isMobile ? 'column' : 'row', gap: 12, marginBottom: 10 }}>
               <div style={{ fontFamily: 'var(--ff)', fontSize: '0.82rem', fontWeight: 800 }}>Weekly budget</div>
               <div style={{ fontFamily: 'var(--ff)', fontSize: '0.8rem', fontWeight: 700, color: budgetOver ? '#f59e0b' : 'var(--g)' }}>
                 {budgetOver ? `Over by ₹${Math.max(0, -budgetLeft).toLocaleString()}` : `Left ₹${Math.max(0, budgetLeft).toLocaleString()}`}
@@ -441,19 +443,19 @@ export default function MealPlannerPage({ onCartChange }: { onCartChange?: () =>
             </div>
             <div style={{ maxHeight: 340, overflowY: 'auto', paddingRight: 4 }}>
               {groceryList.map(item => (
-                <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--bd)', gap: 10 }}>
+                <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', padding: '7px 0', borderBottom: '1px solid var(--bd)', gap: 10 }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: 600, fontFamily: 'var(--ff)' }}>{item.imageEmoji} {item.name}</div>
                     <div style={{ fontSize: '0.62rem', color: 'var(--t3)', fontFamily: 'var(--ff)' }}>{item.category} · {item.unit}</div>
                   </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ textAlign: isMobile ? 'left' : 'right', flexShrink: 0 }}>
                     <div style={{ fontFamily: 'var(--ff)', fontWeight: 700, color: 'var(--g)', fontSize: '0.76rem' }}>x{item.qty}</div>
                     <div style={{ fontSize: '0.62rem', color: 'var(--t3)' }}>₹{(item.price * item.qty).toLocaleString()}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--bd)' }}>
               <span style={{ fontFamily: 'var(--ff)', fontSize: '0.8rem', fontWeight: 700 }}>Estimated basket</span>
               <span style={{ fontFamily: 'var(--ff)', fontSize: '0.95rem', fontWeight: 800, color: 'var(--g)' }}>₹{groceryTotal.toLocaleString()}</span>
             </div>
@@ -497,7 +499,7 @@ export default function MealPlannerPage({ onCartChange }: { onCartChange?: () =>
       </div>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 20, right: 20, background: 'var(--s2)', border: '1px solid var(--bd2)', color: 'var(--t1)', padding: '9px 15px', borderRadius: 9, fontSize: '0.78rem', fontFamily: 'var(--ff)', zIndex: 999 }}>
+        <div style={{ position: 'fixed', bottom: 20, right: isMobile ? 12 : 20, left: isMobile ? 12 : 'auto', background: 'var(--s2)', border: '1px solid var(--bd2)', color: 'var(--t1)', padding: '9px 15px', borderRadius: 9, fontSize: '0.78rem', fontFamily: 'var(--ff)', zIndex: 999 }}>
           {toast}
         </div>
       )}

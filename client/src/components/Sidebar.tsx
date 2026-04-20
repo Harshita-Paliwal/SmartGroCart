@@ -21,9 +21,26 @@ interface Props {
   onLogout: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  isMobile: boolean;
+  isTablet: boolean;
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
 }
 
-export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, onToggleTheme }: Props) {
+export default function Sidebar({
+  page,
+  onNavigate,
+  cartCount,
+  onLogout,
+  theme,
+  onToggleTheme,
+  isMobile,
+  isTablet,
+  open,
+  onOpen,
+  onClose,
+}: Props) {
   const { user, logoutUser } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const initials = user?.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'U';
@@ -35,10 +52,43 @@ export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, 
     setConfirmOpen(false);
   };
 
-  return (
-    <aside style={{ width: 236, background: 'var(--s1)', borderRight: '1px solid var(--bd)', display: 'flex', flexDirection: 'column', padding: '18px 0', flexShrink: 0, height: '100vh' }}>
-      <div style={{ padding: '0 20px 16px', fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.04em' }}>
-        Smart<span style={{ color: 'var(--g)' }}>Gro</span>Cart
+  const sidebarBody = (
+    <aside
+      style={{
+        width: isMobile ? 'min(88vw, 320px)' : isTablet ? 220 : 236,
+        background: 'var(--s1)',
+        borderRight: '1px solid var(--bd)',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '18px 0',
+        flexShrink: 0,
+        height: isMobile ? '100dvh' : '100vh',
+      }}
+    >
+      <div
+        style={{
+          padding: '0 20px 16px',
+          fontFamily: 'var(--ff)',
+          fontWeight: 800,
+          fontSize: '1.1rem',
+          letterSpacing: '-0.04em',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}
+      >
+        <span>
+          Smart<span style={{ color: 'var(--g)' }}>Gro</span>Cart
+        </span>
+        {isMobile && (
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: 'var(--t2)', cursor: 'pointer', fontSize: '0.8rem' }}
+          >
+            Close
+          </button>
+        )}
       </div>
       <div style={{ padding: '0 14px 10px' }}>
         <button
@@ -61,24 +111,27 @@ export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, 
           }}
         >
           <span>{theme === 'dark' ? 'Dark mode' : 'Light mode'}</span>
-          <span style={{ color: 'var(--g)' }}>{theme === 'dark' ? '☾' : '☀'}</span>
+          <span style={{ color: 'var(--g)' }}>{theme === 'dark' ? 'Moon' : 'Sun'}</span>
         </button>
       </div>
       <div style={{ padding: '0 14px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', background: 'rgba(34,197,94,.15)', border: '1px solid rgba(34,197,94,.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '0.72rem', color: 'var(--g)' }}>
           {user?.avatar ? <img src={user.avatar} alt={first} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: '0.8rem', fontWeight: 500 }}>{first}</div>
           <div style={{ fontSize: '0.62rem', color: 'var(--t3)' }}>Family of {user?.familySize || 1}</div>
         </div>
       </div>
       <div style={{ height: 1, background: 'var(--bd)', margin: '0 14px 8px' }} />
-      <nav>
+      <nav style={{ overflowY: 'auto', paddingRight: 4 }}>
         {NAV.map(n => (
           <div
             key={n.id}
-            onClick={() => onNavigate(n.id)}
+            onClick={() => {
+              onNavigate(n.id);
+              if (isMobile) onClose();
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -95,7 +148,9 @@ export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, 
           >
             {n.label}
             {n.id === 'cart' && cartCount > 0 && (
-              <span style={{ marginLeft: 'auto', background: 'var(--g)', color: 'var(--gdk)', fontSize: '0.62rem', fontWeight: 800, padding: '1px 7px', borderRadius: 99, fontFamily: 'var(--ff)' }}>{cartCount}</span>
+              <span style={{ marginLeft: 'auto', background: 'var(--g)', color: 'var(--gdk)', fontSize: '0.62rem', fontWeight: 800, padding: '1px 7px', borderRadius: 99, fontFamily: 'var(--ff)' }}>
+                {cartCount}
+              </span>
             )}
           </div>
         ))}
@@ -105,9 +160,75 @@ export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, 
           onClick={() => setConfirmOpen(true)}
           style={{ width: '100%', padding: 8, border: '1px solid var(--bd)', borderRadius: 9, background: 'transparent', color: 'var(--t3)', fontSize: '0.74rem', cursor: 'pointer' }}
         >
-          ← Sign out
+          Sign out
         </button>
       </div>
+    </aside>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <>
+          <div
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 30,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: '12px 14px',
+              borderBottom: '1px solid var(--bd)',
+              background: 'rgba(15,17,23,.92)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <button
+              onClick={onOpen}
+              style={{
+                padding: '8px 10px',
+                border: '1px solid var(--bd)',
+                borderRadius: 10,
+                background: 'var(--s1)',
+                color: 'var(--t1)',
+                cursor: 'pointer',
+                fontFamily: 'var(--ff)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+              }}
+            >
+              Menu
+            </button>
+            <div style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.04em' }}>
+              <span style={{ color: '#fff' }}>Smart</span>
+              <span style={{ color: 'var(--g)' }}>Gro</span>
+              <span style={{ color: '#fff' }}>Cart</span>
+            </div>
+            <div style={{ minWidth: 56, textAlign: 'right', fontSize: '0.72rem', color: 'var(--t3)', fontFamily: 'var(--ff)' }}>
+              {cartCount} cart
+            </div>
+          </div>
+
+          {open && (
+            <div
+              onClick={onClose}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 40,
+                background: 'rgba(0,0,0,.52)',
+                display: 'flex',
+              }}
+            >
+              <div onClick={e => e.stopPropagation()}>{sidebarBody}</div>
+            </div>
+          )}
+        </>
+      ) : (
+        sidebarBody
+      )}
 
       {confirmOpen && (
         <div
@@ -137,7 +258,7 @@ export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, 
             <div style={{ fontSize: '0.78rem', color: 'var(--t3)', lineHeight: 1.5, marginBottom: 16 }}>
               This will log you out of SmartGroCart. You can sign back in anytime.
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
               <button
                 onClick={() => setConfirmOpen(false)}
                 style={{
@@ -171,6 +292,6 @@ export default function Sidebar({ page, onNavigate, cartCount, onLogout, theme, 
           </div>
         </div>
       )}
-    </aside>
+    </>
   );
 }

@@ -12,9 +12,10 @@ import { Page } from '../App';
 import { useAuth } from '../context/AuthContext';
 import { CartItem, CartSummaryResponse, FamilyMember } from '../types/domain';
 import { getCartItemCount } from '../utils/cart';
+import useResponsive from '../utils/useResponsive';
 
 interface CartPageProps {
-  onCartChange: (itemCount: number) => void;
+  onCartChange: (itemCount: number) => void | Promise<void>;
   onNavigate: (page: Page) => void;
 }
 
@@ -30,11 +31,9 @@ interface RequesterOption {
   name: string;
 }
 
-/**
- * Manages the user's cart, checkout flow, and family shared requests.
- */
 export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
   const { user } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
   const [cartSummary, setCartSummary] = useState<CartSummaryResponse | null>(null);
   const [checkoutInProgress, setCheckoutInProgress] = useState(false);
   const [checkoutComplete, setCheckoutComplete] = useState(false);
@@ -46,9 +45,6 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
     forWhom: 'Family',
   });
 
-  /**
-   * Reloads cart contents and synchronises the sidebar badge count.
-   */
   const loadCart = useCallback(async () => {
     try {
       const { data } = await getCart();
@@ -65,10 +61,7 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
   }, [loadCart]);
 
   useEffect(() => {
-    if (!user?.name) {
-      return;
-    }
-
+    if (!user?.name) return;
     setSharedRequest((currentRequest) => ({
       ...currentRequest,
       requestedBy:
@@ -77,9 +70,15 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
     }));
   }, [user?.name]);
 
-  /**
-   * Updates an item's quantity or removes it if the next value reaches zero.
-   */
+  const deleteCartItem = async (itemId: string) => {
+    try {
+      await removeCartItem(itemId);
+      await loadCart();
+    } catch {
+      // keep page usable
+    }
+  };
+
   const changeItemQuantity = async (itemId: string, nextQuantity: number) => {
     if (nextQuantity < 1) {
       await deleteCartItem(itemId);
@@ -90,46 +89,25 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
       await updateCartItem(itemId, { quantity: nextQuantity });
       await loadCart();
     } catch {
-      // Ignore single-action failures and keep the rest of the cart usable.
+      // keep page usable
     }
   };
 
-  /**
-   * Removes an item from the current cart.
-   */
-  const deleteCartItem = async (itemId: string) => {
-    try {
-      await removeCartItem(itemId);
-      await loadCart();
-    } catch {
-      // Ignore single-action failures and keep the rest of the cart usable.
-    }
-  };
-
-  /**
-   * Finalises checkout and clears the badge count after success.
-   */
   const handleCheckout = async () => {
     setCheckoutInProgress(true);
-
     try {
       await checkout();
       setCheckoutComplete(true);
       onCartChange(0);
     } catch {
-      // Ignore errors here so the user can try again without losing state.
+      // keep page usable
     } finally {
       setCheckoutInProgress(false);
     }
   };
 
-  /**
-   * Adds a manual family request that is not tied to a catalog product card.
-   */
   const addSharedRequest = async () => {
-    if (!sharedRequest.name.trim()) {
-      return;
-    }
+    if (!sharedRequest.name.trim()) return;
 
     try {
       await addToCart({
@@ -138,7 +116,7 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
         price: 0,
         quantity: Math.max(1, Number.parseInt(sharedRequest.quantity || '1', 10)),
         expiryDays: 7,
-        imageEmoji: '🛒',
+        imageEmoji: 'Cart',
         requestedBy: sharedRequest.requestedBy,
         addedBy: user?.name || 'You',
         forWhom: sharedRequest.forWhom,
@@ -151,7 +129,7 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
       });
       await loadCart();
     } catch {
-      // Ignore single-action failures and keep the rest of the cart usable.
+      // keep page usable
     }
   };
 
@@ -168,11 +146,11 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
   if (checkoutComplete) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
-        <div style={{ textAlign: 'center', background: 'var(--s1)', border: '1px solid rgba(34,197,94,.3)', borderRadius: 'var(--r2)', padding: '40px 48px' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>✓</div>
+        <div style={{ textAlign: 'center', background: 'var(--s1)', border: '1px solid rgba(34,197,94,.3)', borderRadius: 'var(--r2)', padding: isMobile ? '28px 20px' : '40px 48px', width: 'min(100%, 520px)' }}>
+          <div style={{ fontSize: '3rem', marginBottom: 12 }}>Done</div>
           <div style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>Order Placed!</div>
           <div style={{ color: 'var(--t3)', fontSize: '0.8rem', marginBottom: 20 }}>
-            Expiry tracking started for all items
+            Expiry tracking started for all items.
           </div>
           <button
             onClick={() => {
@@ -198,8 +176,8 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
       </div>
 
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: '60px 40px' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🛒</div>
+        <div style={{ textAlign: 'center', background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: isMobile ? '40px 20px' : '60px 40px' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>Cart</div>
           <div style={{ color: 'var(--t3)', fontFamily: 'var(--ff)', marginBottom: 16 }}>
             Your cart is empty
           </div>
@@ -208,36 +186,32 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : 'minmax(0, 1fr) 280px', gap: 14 }}>
           <div style={{ background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: 16 }}>
             {items.map((item) => (
-              <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--bd)' }}>
-                <div style={{ fontSize: '1.4rem', width: 30, textAlign: 'center' }}>{item.imageEmoji || '🛒'}</div>
-                <div style={{ flex: 1 }}>
+              <div key={item._id} style={{ display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap', alignItems: isMobile ? 'flex-start' : 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--bd)' }}>
+                <div style={{ fontSize: '1.4rem', width: 30, textAlign: 'center', flexShrink: 0 }}>{item.imageEmoji || 'Item'}</div>
+                <div style={{ flex: 1, minWidth: isMobile ? 'calc(100% - 40px)' : 0 }}>
                   <div style={{ fontSize: '0.82rem', fontWeight: 500 }}>{item.name}</div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--t3)', marginTop: 1 }}>
                     {item.category} · ~{item.expiryDays}d expiry
                   </div>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--g)', marginTop: 2, fontFamily: 'var(--ff)' }}>
+                  <div style={{ fontSize: '0.62rem', color: 'var(--g)', marginTop: 2, fontFamily: 'var(--ff)', lineHeight: 1.5 }}>
                     Requested by {item.requestedBy || 'Family'} · Added by {item.addedBy || 'You'} · For {item.forWhom || 'Family'}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button onClick={() => changeItemQuantity(item._id, item.quantity - 1)} style={{ width: 22, height: 22, border: '1px solid var(--bd)', borderRadius: 5, background: 'var(--s2)', color: 'var(--t1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>
-                    −
-                  </button>
+                  <button onClick={() => changeItemQuantity(item._id, item.quantity - 1)} style={{ width: 22, height: 22, border: '1px solid var(--bd)', borderRadius: 5, background: 'var(--s2)', color: 'var(--t1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>-</button>
                   <span style={{ fontFamily: 'var(--ff)', fontSize: '0.8rem', fontWeight: 700, minWidth: 18, textAlign: 'center' }}>
                     {item.quantity}
                   </span>
-                  <button onClick={() => changeItemQuantity(item._id, item.quantity + 1)} style={{ width: 22, height: 22, border: '1px solid var(--bd)', borderRadius: 5, background: 'var(--s2)', color: 'var(--t1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>
-                    +
-                  </button>
+                  <button onClick={() => changeItemQuantity(item._id, item.quantity + 1)} style={{ width: 22, height: 22, border: '1px solid var(--bd)', borderRadius: 5, background: 'var(--s2)', color: 'var(--t1)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>+</button>
                 </div>
-                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--g)', fontFamily: 'var(--ff)', minWidth: 50, textAlign: 'right' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--g)', fontFamily: 'var(--ff)', minWidth: 50, textAlign: isMobile ? 'left' : 'right' }}>
                   Rs.{(item.price * item.quantity).toLocaleString()}
                 </div>
                 <button onClick={() => deleteCartItem(item._id)} style={{ background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: '0.85rem', padding: 2 }}>
-                  ×
+                  x
                 </button>
               </div>
             ))}
@@ -257,9 +231,9 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
 
             <div style={{ background: 'var(--s2)', borderRadius: 'var(--r)', padding: 12 }}>
               {items.map((item) => (
-                <div key={item._id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: 'var(--t3)', marginBottom: 6 }}>
-                  <span>{item.name} ×{item.quantity}</span>
-                  <span>Rs.{(item.price * item.quantity).toLocaleString()}</span>
+                <div key={item._id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: '0.76rem', color: 'var(--t3)', marginBottom: 6 }}>
+                  <span style={{ minWidth: 0 }}>{item.name} x{item.quantity}</span>
+                  <span style={{ flexShrink: 0 }}>Rs.{(item.price * item.quantity).toLocaleString()}</span>
                 </div>
               ))}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--ff)', fontSize: '0.9rem', fontWeight: 700, paddingTop: 9, borderTop: '1px solid var(--bd)', marginTop: 4 }}>
@@ -279,7 +253,7 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
               disabled={checkoutInProgress}
               style={{ width: '100%', marginTop: 12, padding: 10, background: 'var(--g)', border: 'none', borderRadius: 9, color: 'var(--gdk)', fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', opacity: checkoutInProgress ? 0.7 : 1 }}
             >
-              {checkoutInProgress ? 'Processing...' : 'Checkout ✓'}
+              {checkoutInProgress ? 'Processing...' : 'Checkout'}
             </button>
             <button
               onClick={async () => {
@@ -301,7 +275,7 @@ export default function CartPage({ onCartChange, onNavigate }: CartPageProps) {
                 placeholder="Item name"
                 style={{ width: '100%', padding: '8px 10px', background: 'var(--s2)', border: '1px solid var(--bd)', borderRadius: 8, color: 'var(--t1)', fontSize: '0.8rem', marginBottom: 8 }}
               />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8, marginBottom: 8 }}>
                 <select value={sharedRequest.requestedBy} onChange={(event) => setSharedRequest({ ...sharedRequest, requestedBy: event.target.value })} style={{ padding: '8px 10px', background: 'var(--s2)', border: '1px solid var(--bd)', borderRadius: 8, color: 'var(--t1)', fontSize: '0.78rem' }}>
                   {requesterOptions.map((member) => (
                     <option key={member._id || member.name} value={member.name}>

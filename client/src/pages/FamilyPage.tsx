@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { addFamilyMember, deleteFamilyMember, getFamilyMembers, updateFamilyMember } from '../api';
+import useResponsive from '../utils/useResponsive';
 
 interface Member {
   _id?: string;
@@ -35,6 +36,7 @@ const lb: React.CSSProperties = {
 
 export default function FamilyPage() {
   const { user, refreshUser } = useAuth();
+  const { isMobile } = useResponsive();
   const [members, setMembers] = useState<Member[]>([]);
   const [modal, setModal] = useState(false);
   const [mode, setMode] = useState<'add' | 'edit'>('add');
@@ -253,7 +255,7 @@ export default function FamilyPage() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => e.target === e.currentTarget && setModal(false)}
         >
-          <div style={{ background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: 24, width: 310 }}>
+          <div style={{ background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: isMobile ? 18 : 24, width: 'min(310px, 100%)' }}>
             <div style={{ fontFamily: 'var(--ff)', fontWeight: 700, fontSize: '0.95rem', marginBottom: 14 }}>{mode === 'add' ? 'Add family member' : 'Edit family member'}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <div style={{ width: 52, height: 52, borderRadius: '50%', overflow: 'hidden', background: 'rgba(34,197,94,.12)', border: '1px solid rgba(34,197,94,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1rem', color: 'var(--g)', flexShrink: 0 }}>
@@ -266,7 +268,7 @@ export default function FamilyPage() {
             </div>
             <div style={lb}>NAME</div>
             <input style={fi} placeholder="Priya" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div>
                 <div style={lb}>AGE</div>
                 <input style={fi} type="number" placeholder="28" value={form.age} onChange={e => setForm({ ...form, age: e.target.value })} />
@@ -286,7 +288,7 @@ export default function FamilyPage() {
                 <option key={d}>{d}</option>
               ))}
             </select>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
               <button onClick={() => setModal(false)} style={{ flex: 1, padding: 8, border: '1px solid var(--bd)', borderRadius: 8, background: 'transparent', color: 'var(--t3)', fontFamily: 'var(--ff)', cursor: 'pointer' }}>
                 Cancel
               </button>

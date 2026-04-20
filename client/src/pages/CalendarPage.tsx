@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getPurchases } from '../api';
+import useResponsive from '../utils/useResponsive';
 
 type DayMap = Record<string, { items: any[]; total: number }>;
 
@@ -9,6 +10,7 @@ const labelDay = (d: Date) => d.toLocaleDateString('en-IN', { weekday: 'short', 
 
 export default function CalendarPage() {
   const today = new Date();
+  const { isMobile, isTablet } = useResponsive();
   const [monthOffset, setMonthOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [dayMap, setDayMap] = useState<DayMap>({});
@@ -57,7 +59,7 @@ export default function CalendarPage() {
     return () => {
       active = false;
     };
-  }, [monthOffset, viewDate]);
+  }, [monthOffset, selected, viewDate]);
 
   const year = viewDate.getFullYear();
   const monthName = viewDate.toLocaleDateString('en-IN', { month: 'long' });
@@ -79,7 +81,7 @@ export default function CalendarPage() {
   const activeDays = Object.keys(dayMap).length;
 
   const emojiLine = (items: any[]) => {
-    const emojis = items.slice(0, 6).map(item => item.imageEmoji || '🛒');
+    const emojis = items.slice(0, 4).map(item => item.imageEmoji || 'Item');
     if (!emojis.length) return 'No purchases';
     return emojis.join(' ');
   };
@@ -90,78 +92,70 @@ export default function CalendarPage() {
         Calendar
       </div>
       <div style={{ fontSize: '0.76rem', color: 'var(--t3)', marginBottom: 18, fontFamily: 'var(--ff)' }}>
-        A cute month view of what was bought on each day
+        A month view of what was bought each day.
       </div>
 
-      {new Date().getDate() === 1 && (
-        <div style={{ background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.22)', borderRadius: 'var(--r)', padding: '10px 14px', marginBottom: 14, fontFamily: 'var(--ff)', fontSize: '0.78rem', color: 'var(--g)' }}>
-          New month started. Your calendar is now showing this month&apos;s purchases.
-        </div>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 0.9fr', gap: 14, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1.5fr 0.9fr', gap: 14, alignItems: 'start' }}>
         <div style={{ background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
-            <button
-              onClick={() => setMonthOffset(v => v - 1)}
-              style={{ padding: '7px 11px', border: '1px solid var(--bd)', borderRadius: 9, background: 'transparent', color: 'var(--t1)', cursor: 'pointer', fontFamily: 'var(--ff)', fontWeight: 700 }}
-            >
-              ←
+          <div style={{ display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'space-between', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 14 }}>
+            <button onClick={() => setMonthOffset(v => v - 1)} style={{ padding: '7px 11px', border: '1px solid var(--bd)', borderRadius: 9, background: 'transparent', color: 'var(--t1)', cursor: 'pointer', fontFamily: 'var(--ff)', fontWeight: 700 }}>
+              Previous
             </button>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1rem' }}>{monthName} {year}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--t3)', fontFamily: 'var(--ff)' }}>{activeDays} active days · ₹{monthSpend.toLocaleString()} spent</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--t3)', fontFamily: 'var(--ff)' }}>{activeDays} active days · Rs.{monthSpend.toLocaleString()} spent</div>
             </div>
-            <button
-              onClick={() => setMonthOffset(v => v + 1)}
-              style={{ padding: '7px 11px', border: '1px solid var(--bd)', borderRadius: 9, background: 'transparent', color: 'var(--t1)', cursor: 'pointer', fontFamily: 'var(--ff)', fontWeight: 700 }}
-            >
-              →
+            <button onClick={() => setMonthOffset(v => v + 1)} style={{ padding: '7px 11px', border: '1px solid var(--bd)', borderRadius: 9, background: 'transparent', color: 'var(--t1)', cursor: 'pointer', fontFamily: 'var(--ff)', fontWeight: 700 }}>
+              Next
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginBottom: 8 }}>
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-              <div key={d} style={{ fontSize: '0.65rem', color: 'var(--t3)', textAlign: 'center', fontFamily: 'var(--ff)', letterSpacing: '0.04em' }}>{d}</div>
-            ))}
-          </div>
+          <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
+            <div style={{ minWidth: isMobile ? 640 : 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginBottom: 8 }}>
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+                  <div key={d} style={{ fontSize: '0.65rem', color: 'var(--t3)', textAlign: 'center', fontFamily: 'var(--ff)', letterSpacing: '0.04em' }}>{d}</div>
+                ))}
+              </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-            {cells.map((date, idx) => {
-              if (!date) return <div key={`pad-${idx}`} style={{ minHeight: 88, borderRadius: 14, background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.02)' }} />;
-              const key = dayKey(date);
-              const dayInfo = dayMap[key];
-              const isToday = key === dayKey(today);
-              const isSelected = key === selected;
-              const hasItems = !!dayInfo;
-              const chip = emojiLine(dayInfo?.items || []);
-              return (
-                <button
-                  key={key}
-                  onClick={() => setSelected(key)}
-                  style={{
-                    minHeight: 88,
-                    borderRadius: 14,
-                    border: `1px solid ${isSelected ? 'rgba(34,197,94,.45)' : hasItems ? 'rgba(34,197,94,.18)' : 'var(--bd)'}`,
-                    background: isSelected ? 'rgba(34,197,94,.08)' : 'var(--s2)',
-                    padding: 10,
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    color: 'var(--t1)',
-                    boxShadow: isToday ? '0 0 0 1px rgba(34,197,94,.18) inset' : 'none',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '0.86rem' }}>{date.getDate()}</span>
-                    {isToday && <span style={{ fontSize: '0.62rem', color: 'var(--g)', fontFamily: 'var(--ff)' }}>Today</span>}
-                  </div>
-                  <div style={{ fontSize: '1.05rem', lineHeight: 1.1, minHeight: 24 }}>{hasItems ? chip : '·'}</div>
-                  <div style={{ fontSize: '0.62rem', color: 'var(--t3)', marginTop: 6, fontFamily: 'var(--ff)' }}>
-                    {hasItems ? `${dayInfo.items.length} items` : 'No purchases'}
-                  </div>
-                </button>
-              );
-            })}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+                {cells.map((date, idx) => {
+                  if (!date) return <div key={`pad-${idx}`} style={{ minHeight: 88, borderRadius: 14, background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.02)' }} />;
+                  const key = dayKey(date);
+                  const dayInfo = dayMap[key];
+                  const isToday = key === dayKey(today);
+                  const isSelected = key === selected;
+                  const hasItems = !!dayInfo;
+                  const chip = emojiLine(dayInfo?.items || []);
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setSelected(key)}
+                      style={{
+                        minHeight: 88,
+                        borderRadius: 14,
+                        border: `1px solid ${isSelected ? 'rgba(34,197,94,.45)' : hasItems ? 'rgba(34,197,94,.18)' : 'var(--bd)'}`,
+                        background: isSelected ? 'rgba(34,197,94,.08)' : 'var(--s2)',
+                        padding: 10,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        color: 'var(--t1)',
+                        boxShadow: isToday ? '0 0 0 1px rgba(34,197,94,.18) inset' : 'none',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 6 }}>
+                        <span style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '0.86rem' }}>{date.getDate()}</span>
+                        {isToday && <span style={{ fontSize: '0.62rem', color: 'var(--g)', fontFamily: 'var(--ff)' }}>Today</span>}
+                      </div>
+                      <div style={{ fontSize: '0.92rem', lineHeight: 1.1, minHeight: 24 }}>{hasItems ? chip : '.'}</div>
+                      <div style={{ fontSize: '0.62rem', color: 'var(--t3)', marginTop: 6, fontFamily: 'var(--ff)' }}>
+                        {hasItems ? `${dayInfo.items.length} items` : 'No purchases'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -179,12 +173,12 @@ export default function CalendarPage() {
               <div>
                 <div style={{ fontFamily: 'var(--ff)', fontSize: '0.9rem', fontWeight: 700, marginBottom: 6 }}>{labelDay(new Date(selected))}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--t3)', marginBottom: 10, fontFamily: 'var(--ff)' }}>
-                  ₹{selectedTotal.toLocaleString()} total across {selectedItems.length} items
+                  Rs.{selectedTotal.toLocaleString()} total across {selectedItems.length} items
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 180, overflowY: 'auto', paddingRight: 4 }}>
                   {selectedItems.map((item: any, i: number) => (
                     <div key={i} style={{ padding: '7px 10px', borderRadius: 999, background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.18)', fontFamily: 'var(--ff)', fontSize: '0.72rem' }}>
-                      {item.imageEmoji || '🛒'} {item.name}
+                      {item.imageEmoji || 'Item'} {item.name}
                     </div>
                   ))}
                 </div>
@@ -192,13 +186,13 @@ export default function CalendarPage() {
             )}
           </div>
 
-          <div style={{ background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: 16, maxHeight: 220, overflowY: 'auto' }}>
+          <div style={{ background: 'var(--s1)', border: '1px solid var(--bd)', borderRadius: 'var(--r2)', padding: 16 }}>
             <div style={{ fontFamily: 'var(--ff)', fontSize: '0.82rem', fontWeight: 800, marginBottom: 10 }}>This month at a glance</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--t3)', lineHeight: 1.9, fontFamily: 'var(--ff)' }}>
-              • Active days: {activeDays}<br />
-              • Total purchases: {monthPurchases.length}<br />
-              • Month spend: ₹{monthSpend.toLocaleString()}<br />
-              • Click any date to see the exact items bought that day
+              Active days: {activeDays}<br />
+              Total purchases: {monthPurchases.length}<br />
+              Month spend: Rs.{monthSpend.toLocaleString()}<br />
+              Tap any date to see the exact items bought that day.
             </div>
           </div>
         </div>

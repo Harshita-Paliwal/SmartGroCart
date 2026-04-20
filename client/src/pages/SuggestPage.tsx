@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { addToCart, getExpiryAlerts, getSuggestions } from '../api';
 import { ExpiryAlert, SuggestionsResponse } from '../types/domain';
+import useResponsive from '../utils/useResponsive';
 
 type SuggestionTab = 'rules' | 'expiry';
 
@@ -12,6 +13,7 @@ interface SuggestPageProps {
  * Shows rule-based suggestions and expiry reminders on a single screen.
  */
 export default function SuggestPage({ onCartChange }: SuggestPageProps) {
+  const { isMobile } = useResponsive();
   const [activeTab, setActiveTab] = useState<SuggestionTab>('rules');
   const [smartSuggestions, setSmartSuggestions] = useState<SuggestionsResponse | null>(null);
   const [expiryAlerts, setExpiryAlerts] = useState<ExpiryAlert[]>([]);
@@ -115,11 +117,11 @@ export default function SuggestPage({ onCartChange }: SuggestPageProps) {
           ) : (
             <div style={cardStyle}>
               {smartSuggestions.suggestions.map((suggestion, index) => (
-                <div key={`${suggestion.name}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 0', borderBottom: index < smartSuggestions.suggestions.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+                <div key={`${suggestion.name}-${index}`} style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: 9, padding: '8px 0', borderBottom: index < smartSuggestions.suggestions.length - 1 ? '1px solid var(--bd)' : 'none' }}>
                   <span style={{ fontSize: '1.3rem', width: 28, textAlign: 'center', flexShrink: 0 }}>
                     {suggestion.imageEmoji || '🛒'}
                   </span>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: isMobile ? 'calc(100% - 40px)' : 0 }}>
                     <div style={{ fontSize: '0.82rem', fontWeight: 500 }}>{suggestion.name}</div>
                     <div style={{ fontSize: '0.66rem', color: 'var(--t3)', marginTop: 1 }}>
                       {suggestion.reason} · suggest x{suggestion.suggestedQty}
@@ -153,7 +155,7 @@ export default function SuggestPage({ onCartChange }: SuggestPageProps) {
             </div>
           ) : (
             expiryAlerts.map((alert, index) => (
-              <div key={`${alert.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: index < expiryAlerts.length - 1 ? '1px solid var(--bd)' : 'none' }}>
+              <div key={`${alert.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 8, padding: '8px 0', borderBottom: index < expiryAlerts.length - 1 ? '1px solid var(--bd)' : 'none' }}>
                 <div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 500 }}>
                     {alert.imageEmoji} {alert.name}

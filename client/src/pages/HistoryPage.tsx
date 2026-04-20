@@ -1,7 +1,9 @@
 import React,{useEffect,useState} from 'react';
 import {getPurchases,getPurchaseStats} from '../api';
+import useResponsive from '../utils/useResponsive';
 
 export default function HistoryPage(){
+  const { isMobile, isTablet } = useResponsive();
   const [purchases,setPurchases]=useState<any[]>([]);
   const [stats,setStats]=useState<any>(null);
   const [expanded,setExpanded]=useState<string[]>([]);
@@ -20,18 +22,18 @@ export default function HistoryPage(){
     <div>
       <div style={{fontFamily:'var(--ff)',fontWeight:800,fontSize:'1.5rem',letterSpacing:'-0.04em',marginBottom:2}}>Purchase History</div>
       <div style={{fontSize:'0.76rem',color:'var(--t3)',marginBottom:20,fontFamily:'var(--ff)'}}>Click any order to expand</div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 280px',gap:14,alignItems:'start'}}>
+      <div style={{display:'grid',gridTemplateColumns:isTablet?'1fr':'1fr 280px',gap:14,alignItems:'start'}}>
         <div>
           {loading?<div style={{color:'var(--t3)',fontFamily:'var(--ff)',fontSize:'0.82rem'}}>Loading...</div>
           :purchases.length===0?<div style={{background:'var(--s1)',border:'1px solid var(--bd)',borderRadius:'var(--r2)',padding:'48px 32px',textAlign:'center',color:'var(--t3)',fontFamily:'var(--ff)',fontSize:'0.82rem'}}>No purchases yet.<br/>Make your first order from Cart!</div>
           :purchases.map(p=>(
             <div key={p._id} style={{border:'1px solid var(--bd)',borderRadius:'var(--r)',marginBottom:8,overflow:'hidden'}}>
-              <div onClick={()=>toggle(p._id)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'11px 14px',background:'var(--s2)',cursor:'pointer',fontSize:'0.78rem'}}>
+              <div onClick={()=>toggle(p._id)} style={{display:'flex',justifyContent:'space-between',alignItems:isMobile?'flex-start':'center',flexDirection:isMobile?'column':'row',padding:'11px 14px',background:'var(--s2)',cursor:'pointer',fontSize:'0.78rem',gap:8}}>
                 <div>
                   <span style={{fontFamily:'var(--ff)',fontWeight:600}}>Order - {new Date(p.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
                   <span style={{color:'var(--t3)',marginLeft:8}}>{p.items.length} items</span>
                 </div>
-                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                   <span style={{color:'var(--g)',fontFamily:'var(--ff)',fontWeight:700}}>Rs.{p.totalAmount.toLocaleString()}</span>
                   <span style={{color:'var(--t3)',fontSize:'0.72rem'}}>{expanded.includes(p._id)?'▲':'▼'}</span>
                 </div>

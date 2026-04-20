@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { registerAPI, loginAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
+import useResponsive from '../utils/useResponsive';
 interface Props { initialMode:'login'|'register'; onBack:()=>void; onSuccess:()=>void; }
 const fi: React.CSSProperties = { width:'100%', padding:'10px 12px', background:'var(--s2)', border:'1px solid var(--bd)', borderRadius:8, color:'var(--t1)', fontSize:'0.85rem', outline:'none' };
 const lb: React.CSSProperties = { fontSize:'0.68rem', color:'var(--t3)', fontFamily:'var(--ff)', letterSpacing:'0.07em', marginBottom:4, marginTop:12, display:'block' };
 export default function AuthPage({ initialMode, onBack, onSuccess }: Props) {
   const { loginUser } = useAuth();
+  const { isMobile } = useResponsive();
   const [mode, setMode] = useState(initialMode);
   const [err, setErr]   = useState('');
   const [busy, setBusy] = useState(false);
@@ -39,7 +41,7 @@ export default function AuthPage({ initialMode, onBack, onSuccess }: Props) {
   return (
     <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',padding:20,position:'relative',overflow:'hidden'}}>
       <div style={{position:'absolute',top:-120,left:'50%',transform:'translateX(-50%)',width:600,height:350,background:'radial-gradient(ellipse,rgba(34,197,94,.09) 0%,transparent 68%)',pointerEvents:'none'}}/>
-      <div style={{width:'100%',maxWidth:440,background:'var(--s1)',border:'1px solid var(--bd)',borderRadius:'var(--r2)',padding:30,position:'relative',zIndex:1}}>
+      <div style={{width:'100%',maxWidth:440,background:'var(--s1)',border:'1px solid var(--bd)',borderRadius:'var(--r2)',padding:isMobile?20:30,position:'relative',zIndex:1}}>
         <button onClick={onBack} style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.76rem',color:'var(--t3)',background:'none',border:'none',cursor:'pointer',marginBottom:20,fontFamily:'var(--fb)'}}>← Back to home</button>
         <div style={{fontFamily:'var(--ff)',fontWeight:800,fontSize:'1.4rem',letterSpacing:'-0.04em',marginBottom:3}}>Smart<span style={{color:'var(--g)'}}>Gro</span>Cart</div>
         <div style={{fontSize:'0.76rem',color:'var(--t3)',fontFamily:'var(--ff)',marginBottom:22}}>{mode==='login'?'Sign in to your account':'Create your account'}</div>
@@ -60,7 +62,7 @@ export default function AuthPage({ initialMode, onBack, onSuccess }: Props) {
         )}
         {mode==='register'&&(
           <div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10}}>
               <div><label style={lb}>FULL NAME</label><input style={fi} value={rn} onChange={e=>setRn(e.target.value)} placeholder="Arjun Sharma"/></div>
               <div><label style={lb}>USERNAME</label><input style={fi} value={ru} onChange={e=>setRu(e.target.value)} placeholder="arjun99"/></div>
             </div>
@@ -68,17 +70,17 @@ export default function AuthPage({ initialMode, onBack, onSuccess }: Props) {
             <input style={fi} type="number" min="0" max="120" value={ra} onChange={e=>setRa(e.target.value)} placeholder="30"/>
             <label style={lb}>PASSWORD</label>
             <input style={fi} type="password" value={rp} onChange={e=>setRp(e.target.value)} placeholder="min 6 characters"/>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginTop:12}}>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10,marginTop:12}}>
               <div><label style={lb}>FAMILY SIZE</label><input style={fi} type="number" value={rfs} onChange={e=>setRfs(e.target.value)} min="1" max="20"/></div>
               <div><label style={lb}>MONTHLY BUDGET (₹)</label><input style={fi} type="number" value={rb} onChange={e=>setRb(e.target.value)}/></div>
             </div>
             <div style={{marginTop:14,background:'var(--s2)',border:'1px solid var(--bd)',borderRadius:9,padding:12}}>
               <div style={{fontSize:'0.68rem',color:'var(--t3)',fontFamily:'var(--ff)',letterSpacing:'0.07em',marginBottom:9}}>FAMILY MEMBERS (optional)</div>
               {members.map((m,i)=>(
-                <div key={i} style={{display:'flex',gap:6,marginBottom:6,alignItems:'center'}}>
+                <div key={i} style={{display:'flex',gap:6,marginBottom:6,alignItems:'center',flexWrap:isMobile?'wrap':'nowrap'}}>
                   <input style={{...fi,flex:1}} placeholder="Name" value={m.name} onChange={e=>updMember(i,'name',e.target.value)}/>
-                  <input style={{...fi,width:58}} type="number" placeholder="Age" value={m.age} onChange={e=>updMember(i,'age',e.target.value)}/>
-                  <select style={{...fi,width:88}} value={m.relation} onChange={e=>updMember(i,'relation',e.target.value)}>
+                  <input style={{...fi,width:isMobile?'100%':58}} type="number" placeholder="Age" value={m.age} onChange={e=>updMember(i,'age',e.target.value)}/>
+                  <select style={{...fi,width:isMobile?'100%':88}} value={m.relation} onChange={e=>updMember(i,'relation',e.target.value)}>
                     {['Spouse','Child','Parent','Sibling','Other'].map(r=><option key={r}>{r}</option>)}
                   </select>
                   <button onClick={()=>setMembers(members.filter((_,x)=>x!==i))} style={{background:'none',border:'none',color:'var(--t3)',cursor:'pointer',fontSize:'0.95rem',padding:2}}>✕</button>

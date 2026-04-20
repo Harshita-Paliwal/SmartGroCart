@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../api';
 import PopupModal from '../components/PopupModal';
+import useResponsive from '../utils/useResponsive';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
   const [name, setName] = useState(user?.name || '');
   const [age, setAge] = useState(String(user?.age ?? 30));
   const [avatar, setAvatar] = useState(user?.avatar || '');
@@ -151,7 +153,7 @@ export default function ProfilePage() {
     <div>
       <div style={{ fontFamily: 'var(--ff)', fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.04em', marginBottom: 2 }}>Profile</div>
       <div style={{ fontSize: '0.76rem', color: 'var(--t3)', marginBottom: 20, fontFamily: 'var(--ff)' }}>Update your account settings</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 14 }}>
         <div>
           <div style={cd}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -212,7 +214,7 @@ export default function ProfilePage() {
             <input style={fi} type="number" min="0" max="120" value={age} onChange={e => setAge(e.target.value)} />
             <div style={lb}>USERNAME (cannot change)</div>
             <input style={{ ...fi, opacity: 0.5 }} value={user?.username || ''} disabled />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div>
                 <div style={lb}>FAMILY SIZE</div>
                 <input style={{ ...fi, marginBottom: 0 }} type="number" min="1" max="20" value={size} onChange={e => setSize(e.target.value)} />
@@ -222,7 +224,7 @@ export default function ProfilePage() {
                 <input style={{ ...fi, marginBottom: 0 }} type="number" value={budget} onChange={e => setBudget(e.target.value)} />
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
+            <div style={{ display: 'flex', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 12, marginTop: 16 }}>
               <button
                 onClick={() => setPwOpen(true)}
                 style={{

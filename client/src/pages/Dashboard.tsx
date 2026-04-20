@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getExpiryAlerts, getPurchaseStats, getSuggestions } from '../api';
 import { Page } from '../App';
 import { ExpiryAlert, PurchaseStatsResponse, SuggestionItem, SuggestionsResponse } from '../types/domain';
+import useResponsive from '../utils/useResponsive';
 
 const cardStyle: React.CSSProperties = {
   background: 'var(--s1)',
@@ -21,6 +22,7 @@ interface DashboardProps {
  */
 export default function Dashboard({ onNavigate }: DashboardProps) {
   const { user } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
   const [purchaseStats, setPurchaseStats] = useState<PurchaseStatsResponse | null>(null);
   const [expiryAlerts, setExpiryAlerts] = useState<ExpiryAlert[]>([]);
   const [smartSuggestions, setSmartSuggestions] = useState<SuggestionsResponse | null>(null);
@@ -72,7 +74,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10, marginBottom: 18 }}>
         {[
           ['SPENT', `Rs.${monthlySpend.toLocaleString()}`, '#22c55e'],
           ['REMAINING', `Rs.${Math.max(0, remainingBudget).toLocaleString()}`, remainingBudget < 0 ? '#ef4444' : '#f59e0b'],
@@ -86,7 +88,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
         <div style={cardStyle}>
           <div style={{ fontFamily: 'var(--ff)', fontSize: '0.8rem', fontWeight: 700, marginBottom: 10 }}>Suggested for you</div>
           {smartSuggestions?.suggestions?.length ? (
